@@ -24,7 +24,7 @@ body {
     margin-bottom: 20px;
 }
 
-.avatar {
+#avatar {
     width: 80px; /* Сделаем аватар немного меньше */
     height: 80px;
     border-radius: 35%;
