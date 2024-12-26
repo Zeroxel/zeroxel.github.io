@@ -1,4 +1,4 @@
-const apiUri_sheets = 'https://sheets.livepolls.app/api/spreadsheets/68c215d2-1f4e-471d-8d4c-9e5cb6ccf007/main';
+const apiUri_sheets = 'https://sheets.livepolls.app/api/spreadsheets/68c215d2-1f4e-471d-8d4c-9e5cb6ccf007/main-gamecop20';
 
 async function fetchStatus() {
   try {
