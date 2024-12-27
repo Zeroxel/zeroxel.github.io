@@ -89,3 +89,33 @@ h2 {
 .links a:hover img {
     transform: scale(1.1);
 }
+
+.back-arrow {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    background-color: transparent;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    color: white;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.back-arrow a {
+    color: white;
+    text-decoration: none;
+}
+
+.back-arrow:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.back-arrow span {
+    font-size: 1.5rem;
+    vertical-align: middle;
+}
+
