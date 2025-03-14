@@ -13,6 +13,7 @@ async function fetchStatus() {
 
       document.getElementById('status').textContent = `${status}`;
       document.getElementById('username').textContent = `${username}`;
+      document.getElementById('onlinestatus').textContent = `${onlinestatus}`;
 
       const avatarElement = document.getElementById('avatar');
       if (avatar) {
