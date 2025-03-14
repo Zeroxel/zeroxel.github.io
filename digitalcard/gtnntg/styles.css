@@ -36,6 +36,11 @@ body {
     font-size: 35px;
     font-weight: bold;
 }
+#onlinestatus {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
 .api-status {
     margin-bottom: 20px;
 }
@@ -118,4 +123,6 @@ h2 {
     font-size: 1.5rem;
     vertical-align: middle;
 }
+
+
 
