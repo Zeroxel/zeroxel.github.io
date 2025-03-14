@@ -6,6 +6,7 @@ async function fetchStatus() {
     const data = await response.json();
 
     if (data.success && data.data.length > 0) {
+      const onlinestatus = data.data[0].onlinestatus;
       const status = data.data[0].status; 
       const username = data.data[0].username;
       const avatar = data.data[0].avatar; // Поле для аватара
