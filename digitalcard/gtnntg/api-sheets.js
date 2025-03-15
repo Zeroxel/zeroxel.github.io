@@ -24,7 +24,7 @@ async function fetchStatus() {
         avatarElement.alt = 'Аватар отсутствует';
       }
       if (document.getElementById('status').textContent === "none") {
-        document.getElementsByClassName('api-status').hidden = true
+        document.getElementById('api-status').hidden = true
       }
     } else {
       document.getElementById('status').textContent = 'Статус не найден.';
