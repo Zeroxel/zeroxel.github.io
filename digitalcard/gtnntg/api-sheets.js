@@ -23,6 +23,9 @@ async function fetchStatus() {
         console.warn('Ссылка на аватар отсутствует.');
         avatarElement.alt = 'Аватар отсутствует';
       }
+      if (document.getElementById('status').textContent.length === 0) {
+        document.getElementsByClassName('api-status').hidden = true
+      }
     } else {
       document.getElementById('status').textContent = 'Статус не найден.';
       document.getElementById('username').textContent = 'Не найден.';
