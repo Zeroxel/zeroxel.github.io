@@ -38,8 +38,8 @@ body {
 }
 #onlinestatus {
     position: absolute;
-    top: 183px;
-    left: 266px;
+    margin-top: 65px;
+    margin-left: 110px;
 }
 .api-status {
     margin-bottom: 20px;
