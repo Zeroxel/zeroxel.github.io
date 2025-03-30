@@ -44,9 +44,7 @@ async function fetchLinksAndDisplay() {
         }
 
           // Добавляем логотип и текст ссылки
-          if (logo.length === !null){
-            a.appendChild(img);
-        }
+          a.appendChild(img);
           a.appendChild(document.createTextNode(` ${title}`));
           li.appendChild(a);
 
