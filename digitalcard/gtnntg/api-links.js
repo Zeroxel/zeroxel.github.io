@@ -30,18 +30,11 @@ async function fetchLinksAndDisplay() {
           const a = document.createElement('a');
           a.href = link; 
           a.target = '_blank';
-
-          if (logo.length === !null){
+          
           const img = document.createElement('img');
           img.src = logo; 
           img.alt = `Logo of ${title}`;
           img.className = 'logo-icon';
-        }else {
-          const img = document.createElement('img');
-          img.src = 'logo404.png'; 
-          img.alt = `Logo of ${title}`;
-          img.className = 'logo-icon';
-        }
 
           // Добавляем логотип и текст ссылки
           a.appendChild(img);
