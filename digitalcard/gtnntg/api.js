@@ -88,7 +88,9 @@ function setupEventListeners() {
             const lang = option.dataset.lang;
             if (LanguageModule.changeLanguage(lang)) {
                 LanguageModule.loadTranslations();
-                updateUI(); // Обновляем UI с новым языком
+                // --- ИСПРАВЛЕНИЕ: Обновляем ВСЕЙ UI, включая ссылки, при смене языка ---
+                updateUI();
+                // ---
             }
             if (languageDropdown) {
                 languageDropdown.classList.remove('show');
@@ -187,7 +189,9 @@ async function fetchLinksData() {
             console.log("Данные ссылок обновлены");
             state.previousLinksData = JSON.parse(JSON.stringify(data)); // Глубокая копия
             state.linksData = data;
-            updateLinksUI(); // Обновляем UI только если данные изменились
+            // --- ИСПРАВЛЕНИЕ: Обновляем UI ссылок только если данные изменились ---
+            updateLinksUI();
+            // ---
         } else {
             console.log("Данные ссылок не изменились");
         }
@@ -250,21 +254,28 @@ function updateProfileUI() {
             statusIndicator.classList.add(statusClass);
         }
 
-        // --- ИСПРАВЛЕНИЕ АВАТАРА: Возвращаем логику из оригинала ---
+        // --- ИСПРАВЛЕНИЕ АВАТАРА: Простая и надежная логика ---
         // Обновление аватара
         if (DOM.avatar) {
+            // Всегда очищаем содержимое, на случай если там была иконка fa-user
+            DOM.avatar.innerHTML = '';
             if (avatar) {
-                // Всегда устанавливаем src, если аватар есть
-                DOM.avatar.src = avatar;
-                DOM.avatar.alt = `Avatar of ${username}`;
-                // Очищаем innerHTML на случай, если до этого был fa-user
-                // (Хотя img не должно иметь innerHTML, но на всякий случай)
-                DOM.avatar.innerHTML = '';
+                // Создаем новый элемент img
+                const img = document.createElement('img');
+                img.src = avatar;
+                img.alt = `Avatar of ${username || 'User'}`;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.borderRadius = '50%';
+                img.style.objectFit = 'cover';
+                DOM.avatar.appendChild(img);
             } else {
-                // Если аватара нет, показываем иконку
-                DOM.avatar.src = ''; // Очищаем src
-                DOM.avatar.alt = 'Аватар отсутствует';
-                DOM.avatar.innerHTML = '<i class="fas fa-user"></i>';
+                // Если аватара нет, показываем иконку (как в оригинале)
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-user';
+                icon.style.fontSize = '45px'; // Размер как в CSS
+                icon.style.color = 'rgba(255, 255, 255, 0.7)'; // Цвет как в CSS
+                DOM.avatar.appendChild(icon);
             }
         }
         // --- КОНЕЦ ИСПРАВЛЕНИЯ АВАТАРА ---
@@ -294,74 +305,76 @@ function updateProfileUI() {
         if (statusSection && statusSection.hidden) {
             statusSection.hidden = false;
         }
+         // --- ИСПРАВЛЕНИЕ АВАТАРА: Показываем иконку ошибки/загрузки ---
+        if (DOM.avatar) {
+            DOM.avatar.innerHTML = '';
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-user';
+            icon.style.fontSize = '45px';
+            icon.style.color = 'rgba(255, 255, 255, 0.7)';
+            DOM.avatar.appendChild(icon);
+        }
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ АВАТАРА ---
     }
 }
 
-// Обновление интерфейса ссылок (только если есть изменения)
+// Обновление интерфейса ссылок
+// --- ИСПРАВЛЕНИЕ: Эта функция теперь полностью отвечает за отображение ссылок с учетом языка ---
 function updateLinksUI() {
-    const currentLang = LanguageModule.getCurrentLanguage();
+    const currentLang = LanguageModule.getCurrentLanguage(); // Получаем текущий язык
     const t = LanguageModule.LANGUAGES[currentLang];
 
     if (DOM.linksContainer) {
-        // Проверка, есть ли данные для отображения
-        const hasValidData = state.linksData && Array.isArray(state.linksData) && state.linksData.length > 0;
-        const currentlyHasContent = DOM.linksContainer.children.length > 0 &&
-            !(DOM.linksContainer.children.length === 1 &&
-                DOM.linksContainer.children[0].textContent.includes(t.errorLoadingLinks || t.linksNotFound));
+        DOM.linksContainer.innerHTML = ''; // Всегда очищаем контейнер
 
-        // Если данные есть и они изменились, или если раньше были данные, а теперь их нет
-        if (hasValidData || currentlyHasContent) {
-            // Очищаем контейнер
-            DOM.linksContainer.innerHTML = '';
+        if (state.linksData && Array.isArray(state.linksData) && state.linksData.length > 0) {
+            state.linksData.forEach(linkItem => {
+                // --- ИСПРАВЛЕНИЕ: Выбираем название на текущем языке ---
+                const title = linkItem.name[currentLang] || linkItem.name['en'] || 'Link';
+                // ---
 
-            if (hasValidData) {
-                state.linksData.forEach(linkItem => {
-                    // Выбираем название на текущем языке или fallback на английский
-                    const title = linkItem.name[currentLang] || linkItem.name['en'] || 'Link';
+                const linkElement = document.createElement('a');
+                linkElement.href = linkItem.url;
+                linkElement.target = '_blank';
+                linkElement.className = 'link-card';
 
-                    const linkElement = document.createElement('a');
-                    linkElement.href = linkItem.url;
-                    linkElement.target = '_blank';
-                    linkElement.className = 'link-card';
+                const iconElement = document.createElement('div');
+                iconElement.className = 'link-icon';
 
-                    const iconElement = document.createElement('div');
-                    iconElement.className = 'link-icon';
+                if (linkItem.icon) {
+                    const img = document.createElement('img');
+                    img.src = linkItem.icon;
+                    img.alt = `Logo of ${title}`;
+                    img.style.width = '24px';
+                    img.style.height = '24px';
+                    iconElement.appendChild(img);
+                } else {
+                    // Дефолтная иконка, если иконка не предоставлена
+                    iconElement.innerHTML = '<i class="fas fa-external-link-alt"></i>';
+                }
 
-                    if (linkItem.icon) {
-                        const img = document.createElement('img');
-                        img.src = linkItem.icon;
-                        img.alt = `Logo of ${title}`;
-                        img.style.width = '24px';
-                        img.style.height = '24px';
-                        iconElement.appendChild(img);
-                    } else {
-                        // Дефолтная иконка, если иконка не предоставлена
-                        iconElement.innerHTML = '<i class="fas fa-external-link-alt"></i>';
-                    }
+                const textElement = document.createElement('div');
+                textElement.className = 'link-text';
+                textElement.textContent = title; // Используем переведённый заголовок
 
-                    const textElement = document.createElement('div');
-                    textElement.className = 'link-text';
-                    textElement.textContent = title;
-
-                    linkElement.appendChild(iconElement);
-                    linkElement.appendChild(textElement);
-                    DOM.linksContainer.appendChild(linkElement);
-                });
-            } else {
-                // Обработка ошибки или отсутствия данных
-                const errorDiv = document.createElement('div');
-                errorDiv.style.gridColumn = '1 / -1';
-                errorDiv.style.textAlign = 'center';
-                errorDiv.style.padding = '20px';
-                // Выбираем более подходящее сообщение
-                const errorMessage = state.linksData === null ? t.errorLoadingLinks : t.linksNotFound;
-                errorDiv.textContent = errorMessage || 'Ошибка загрузки ссылок.';
-                DOM.linksContainer.appendChild(errorDiv);
-            }
+                linkElement.appendChild(iconElement);
+                linkElement.appendChild(textElement);
+                DOM.linksContainer.appendChild(linkElement);
+            });
+        } else {
+            // Обработка ошибки или отсутствия данных
+            const errorDiv = document.createElement('div');
+            errorDiv.style.gridColumn = '1 / -1';
+            errorDiv.style.textAlign = 'center';
+            errorDiv.style.padding = '20px';
+            // Используем перевод для сообщения об ошибке
+            const errorMessage = state.linksData === null ? t.errorLoadingLinks : t.linksNotFound;
+            errorDiv.textContent = errorMessage || t.errorLoadingLinks || 'Ошибка загрузки ссылок.';
+            DOM.linksContainer.appendChild(errorDiv);
         }
-        // Если данных не было и нет, и контейнер уже пуст или содержит сообщение об ошибке, не обновляем
     }
 }
+// --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
 
 // Функция для запуска автоматического обновления
@@ -398,6 +411,13 @@ function stopAutoRefresh() {
     }
 }
 
+// --- ИСПРАВЛЕНИЕ: Централизованная функция обновления всего UI ---
+function updateUI() {
+    updateProfileUI();
+    updateLinksUI(); // Убедимся, что ссылки тоже обновляются
+}
+// --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
 // Инициализация приложения
 async function initApp() {
     setupEventListeners();
@@ -418,9 +438,6 @@ async function initApp() {
 document.addEventListener('DOMContentLoaded', function () {
     // Убеждаемся, что модули инициализированы
     if (typeof LanguageModule !== 'undefined' && typeof ThemeModule !== 'undefined') {
-        // Инициализация модулей (уже происходит в их файлах, но можно вызвать снова для гарантии)
-        // LanguageModule.init();
-        // ThemeModule.init();
 
         initApp();
     } else {
@@ -428,6 +445,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Можно показать сообщение об ошибке пользователю
         if (DOM.status) {
             DOM.status.textContent = 'Ошибка инициализации приложения.';
+        }
+         if (DOM.username) {
+            DOM.username.textContent = 'Ошибка';
+        }
+        if (DOM.onlinestatus) {
+            DOM.onlinestatus.textContent = 'Ошибка';
         }
     }
 });
