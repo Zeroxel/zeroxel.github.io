@@ -2,14 +2,14 @@
 const CONFIG = {
     // URL для данных профиля (Google Sheets API)
     PROFILE_API_URL: 'https://sheets.livepolls.app/api/spreadsheets/fc0ed5f8-a649-47c5-a6fa-946f177d998d/main-gtnntg',
-    
+
     // URL для данных ссылок (GitHub Gist)
     LINKS_API_URL: 'https://gist.githubusercontent.com/Zeroxel/30d571fe4d15914c5a45ccf9a26255af/raw/9001c0cffd6392bca30f41a9f346dd035c87f293/links.json',
-    
+
     // Интервалы обновления (в миллисекундах)
     PROFILE_REFRESH_INTERVAL: 30 * 1000, // 30 секунд
     LINKS_REFRESH_INTERVAL: 60 * 1000,   // 60 секунд
-    
+
     // Сопоставление текста статуса и CSS классов для цвета
     STATUS_CLASSES: {
         // Русские названия
@@ -71,7 +71,7 @@ function setupEventListeners() {
     // Переключение языка
     const languageSelector = document.getElementById('languageSelector');
     const languageDropdown = document.getElementById('languageDropdown');
-    
+
     if (languageSelector) {
         languageSelector.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -99,7 +99,7 @@ function setupEventListeners() {
     // Переключение темы
     const themeSelector = document.getElementById('themeSelector');
     const themeDropdown = document.getElementById('themeDropdown');
-    
+
     if (themeSelector) {
         themeSelector.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -141,10 +141,10 @@ async function fetchProfileData() {
     try {
         const response = await fetch(CONFIG.PROFILE_API_URL.trim());
         const data = await response.json();
-        
+
         if (data.success && data.data.length > 0) {
             const newProfileData = data.data[0];
-            
+
             // Проверяем, изменились ли данные
             if (!deepEqual(newProfileData, state.previousProfileData)) {
                 console.log("Данные профиля обновлены");
@@ -155,17 +155,17 @@ async function fetchProfileData() {
                 console.log("Данные профиля не изменились");
             }
         } else {
-             // Обработка случая, когда данные отсутствуют
+            // Обработка случая, когда данные отсутствуют
             if (state.previousProfileData !== null) { // Были данные, теперь их нет
-                 console.log("Данные профиля больше не доступны");
-                 state.previousProfileData = null;
-                 state.profileData = null;
-                 updateProfileUI(); // Обновляем UI, чтобы показать ошибку
+                console.log("Данные профиля больше не доступны");
+                state.previousProfileData = null;
+                state.profileData = null;
+                updateProfileUI(); // Обновляем UI, чтобы показать ошибку
             }
         }
     } catch (error) {
         console.error('Ошибка при получении данных профиля:', error);
-         // Обновляем UI в случае ошибки, если раньше данные были
+        // Обновляем UI в случае ошибки, если раньше данные были
         if (state.previousProfileData !== undefined) {
             state.previousProfileData = undefined; // Или какой-то флаг ошибки
             state.profileData = null;
@@ -179,23 +179,21 @@ async function fetchLinksData() {
     try {
         const response = await fetch(CONFIG.LINKS_API_URL.trim());
         const data = await response.json();
-        
-        // Проверяем, изменились ли данные (для массивов можно сравнивать JSON.stringify или длину/содержимое)
-        // Простое сравнение длины и первого элемента для примера. Для более точного сравнения массивов
-        // можно использовать более сложную логику.
+
+        // Проверяем, изменились ли данные
         const isNewDataDifferent = !deepEqual(data, state.previousLinksData);
-        
+
         if (isNewDataDifferent) {
             console.log("Данные ссылок обновлены");
             state.previousLinksData = JSON.parse(JSON.stringify(data)); // Глубокая копия
             state.linksData = data;
             updateLinksUI(); // Обновляем UI только если данные изменились
         } else {
-             console.log("Данные ссылок не изменились");
+            console.log("Данные ссылок не изменились");
         }
     } catch (error) {
         console.error('Ошибка при загрузке данных ссылок:', error);
-         // Обновляем UI в случае ошибки, если раньше данные были
+        // Обновляем UI в случае ошибки, если раньше данные были
         if (state.previousLinksData !== undefined) {
             state.previousLinksData = undefined;
             state.linksData = null;
@@ -208,23 +206,23 @@ async function fetchLinksData() {
 function updateProfileUI() {
     const currentLang = LanguageModule.getCurrentLanguage();
     const t = LanguageModule.LANGUAGES[currentLang];
-    
+
     if (state.profileData) {
         const { username, status, onlinestatus, avatar } = state.profileData;
-        
+
         if (DOM.username) DOM.username.textContent = username || t.userNotFound;
         if (DOM.status) DOM.status.innerHTML = status || t.statusNotFound;
         if (DOM.onlinestatus) DOM.onlinestatus.textContent = onlinestatus || t.checkingStatus;
-        
+
         // Обновление индикатора статуса с цветом
         if (DOM.statusIndicator) {
             const statusIndicator = DOM.statusIndicator;
             // Сначала удаляем все возможные классы статусов
             statusIndicator.classList.remove(
-                'status-online', 'status-idle', 'status-dnd', 
+                'status-online', 'status-idle', 'status-dnd',
                 'status-offline', 'status-invisible'
             );
-            
+
             // Определяем класс для текущего статуса
             let statusClass = 'status-offline'; // По умолчанию серый
             if (onlinestatus) {
@@ -251,24 +249,26 @@ function updateProfileUI() {
             // Применяем соответствующий класс
             statusIndicator.classList.add(statusClass);
         }
-        
+
+        // --- ИСПРАВЛЕНИЕ АВАТАРА: Возвращаем логику из оригинала ---
         // Обновление аватара
         if (DOM.avatar) {
             if (avatar) {
-                // Проверяем, нужно ли обновлять аватар
-                if (DOM.avatar.src !== avatar) {
-                    DOM.avatar.src = avatar;
-                    DOM.avatar.alt = `Avatar of ${username}`;
-                }
+                // Всегда устанавливаем src, если аватар есть
+                DOM.avatar.src = avatar;
+                DOM.avatar.alt = `Avatar of ${username}`;
+                // Очищаем innerHTML на случай, если до этого был fa-user
+                // (Хотя img не должно иметь innerHTML, но на всякий случай)
+                DOM.avatar.innerHTML = '';
             } else {
-                if (DOM.avatar.src || DOM.avatar.innerHTML !== '<i class="fas fa-user"></i>') {
-                    DOM.avatar.src = '';
-                    DOM.avatar.innerHTML = '<i class="fas fa-user"></i>';
-                    DOM.avatar.alt = 'Аватар отсутствует';
-                }
+                // Если аватара нет, показываем иконку
+                DOM.avatar.src = ''; // Очищаем src
+                DOM.avatar.alt = 'Аватар отсутствует';
+                DOM.avatar.innerHTML = '<i class="fas fa-user"></i>';
             }
         }
-        
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ АВАТАРА ---
+
         // Скрытие секции статуса если нужно
         const statusSection = document.querySelector('.status-section');
         if (statusSection) {
@@ -286,7 +286,7 @@ function updateProfileUI() {
         if (DOM.statusIndicator) {
             const currentClasses = DOM.statusIndicator.className;
             if (!currentClasses.includes('status-offline') || currentClasses.includes('online-indicator')) {
-                 DOM.statusIndicator.className = 'online-indicator status-offline';
+                DOM.statusIndicator.className = 'online-indicator status-offline';
             }
         }
         // Показываем секцию статуса в случае ошибки, чтобы показать сообщение
@@ -301,17 +301,17 @@ function updateProfileUI() {
 function updateLinksUI() {
     const currentLang = LanguageModule.getCurrentLanguage();
     const t = LanguageModule.LANGUAGES[currentLang];
-    
+
     if (DOM.linksContainer) {
         // Проверка, есть ли данные для отображения
         const hasValidData = state.linksData && Array.isArray(state.linksData) && state.linksData.length > 0;
-        const currentlyHasContent = DOM.linksContainer.children.length > 0 && 
-                                    !(DOM.linksContainer.children.length === 1 && 
-                                      DOM.linksContainer.children[0].textContent.includes(t.errorLoadingLinks || t.linksNotFound));
+        const currentlyHasContent = DOM.linksContainer.children.length > 0 &&
+            !(DOM.linksContainer.children.length === 1 &&
+                DOM.linksContainer.children[0].textContent.includes(t.errorLoadingLinks || t.linksNotFound));
 
         // Если данные есть и они изменились, или если раньше были данные, а теперь их нет
         if (hasValidData || currentlyHasContent) {
-             // Очищаем контейнер
+            // Очищаем контейнер
             DOM.linksContainer.innerHTML = '';
 
             if (hasValidData) {
@@ -381,7 +381,7 @@ function startAutoRefresh() {
         fetchLinksData();
     }, CONFIG.LINKS_REFRESH_INTERVAL);
 
-    console.log(`Автоматическое обновление запущено: профиль каждые ${CONFIG.PROFILE_REFRESH_INTERVAL/1000}с, ссылки каждые ${CONFIG.LINKS_REFRESH_INTERVAL/1000}с`);
+    console.log(`Автоматическое обновление запущено: профиль каждые ${CONFIG.PROFILE_REFRESH_INTERVAL / 1000}с, ссылки каждые ${CONFIG.LINKS_REFRESH_INTERVAL / 1000}с`);
 }
 
 // Функция для остановки автоматического обновления
@@ -401,27 +401,27 @@ function stopAutoRefresh() {
 // Инициализация приложения
 async function initApp() {
     setupEventListeners();
-    
+
     // Первоначальная загрузка данных
     await Promise.all([
         fetchProfileData(),
         fetchLinksData()
     ]);
-    
+
     // Запуск автоматического обновления
     startAutoRefresh();
-    
+
     console.log("Приложение инициализировано");
 }
 
 // Запуск приложения после загрузки всех модулей
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Убеждаемся, что модули инициализированы
     if (typeof LanguageModule !== 'undefined' && typeof ThemeModule !== 'undefined') {
         // Инициализация модулей (уже происходит в их файлах, но можно вызвать снова для гарантии)
         // LanguageModule.init();
         // ThemeModule.init();
-        
+
         initApp();
     } else {
         console.error('Не удалось загрузить модули LanguageModule или ThemeModule');
@@ -433,6 +433,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Опционально: остановка обновления при уходе со страницы (для экономии ресурсов)
-window.addEventListener('beforeunload', function() {
+window.addEventListener('beforeunload', function () {
     stopAutoRefresh();
 });
