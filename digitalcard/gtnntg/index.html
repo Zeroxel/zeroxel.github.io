@@ -1,38 +1,93 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Card</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-     <div class="back-arrow">
-        <a href="../">
-            <span>&larr;</span> Back to Hub
+    <div class="top-controls">
+        <a href="../" class="back-arrow">
+            <i class="fas fa-arrow-left"></i>
+            <span id="backToHubText">Back to Hub</span>
         </a>
+        
+        <div class="selector">
+            <button class="selector-button language-selector" id="languageSelector">
+                <i class="fas fa-globe"></i>
+                <span id="currentLanguage">Русский</span>
+            </button>
+            <div class="selector-dropdown" id="languageDropdown">
+                <div class="selector-option" data-lang="ru">
+                    <i class="fas fa-flag"></i>
+                    Русский
+                </div>
+                <div class="selector-option" data-lang="en">
+                    <i class="fas fa-flag-usa"></i>
+                    English
+                </div>
+            </div>
+        </div>
+        
+        <div class="selector">
+            <button class="selector-button theme-selector" id="themeSelector">
+                <i class="fas fa-moon"></i>
+                <span id="currentTheme">Темная</span>
+            </button>
+            <div class="selector-dropdown" id="themeDropdown">
+                <div class="selector-option" data-theme="dark">
+                    <i class="fas fa-moon"></i>
+                    Темная
+                </div>
+                <div class="selector-option" data-theme="light">
+                    <i class="fas fa-sun"></i>
+                    Светлая
+                </div>
+            </div>
+        </div>
     </div>
+    
     <div class="card">
-        <div class="profile">
-            <img id="avatar" src="" alt="Avatar placeholder"/>
-            <h1><div id="username" class="loading"></div></h1>
-            <div id="onlinestatus" class="loading"></div>
+        <div class="profile-section">
+            <div class="avatar-container">
+                <div id="avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="online-indicator" id="status-indicator"></div>
+            </div>
+            <h1 id="username">Загрузка...</h1>
+            <div id="onlinestatus">Проверка статуса...</div>
         </div>
-        <div id="api-status">
-            <h2>Status</h2>
-            <p><div id="status" class="loading">Загрузка статуса...</div></p>
+        
+        <div class="status-section">
+            <h2 class="section-title">
+                <i class="fas fa-comment-alt"></i>
+                <span id="statusTitle">Статус</span>
+            </h2>
+            <p id="status">
+                <span class="loading"></span>
+                <span id="loadingStatus">Загрузка статуса...</span>
+            </p>
         </div>
-        <div class="links">
-            <h2>Links</h2>
-            <ul>
-               
-            </ul>
+        
+        <div class="links-section">
+            <h2 class="section-title">
+                <i class="fas fa-link"></i>
+                <span id="linksTitle">Ссылки</span>
+            </h2>
+            <div class="links-grid" id="links-container">
+                <!-- Ссылки будут загружены сюда -->
+            </div>
         </div>
-        <a href="https://mynickname.com/gtnntg">
-        <img src="https://mynickname.com/img.php?nick=gtnntg&sert=2" alt="Никнейм gtnntg зарегистрирован!" border="0" />
-        </a>
+        
+        <div class="nickname-badge">
+            <img src="https://mynickname.com/img.php?nick=gtnntg&sert=2" 
+                 alt="Никнейм gtnntg зарегистрирован!" />
+        </div>
     </div>
-    <script src="api-sheets.js"></script>
-    <script src="api-links.js"></script>
+
+    <script src="api.js"></script>
 </body>
 </html>
