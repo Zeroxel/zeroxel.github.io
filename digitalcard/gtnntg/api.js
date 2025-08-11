@@ -6,6 +6,10 @@ const CONFIG = {
     // URL для данных ссылок (GitHub Gist)
     LINKS_API_URL: 'https://gist.githubusercontent.com/Zeroxel/30d571fe4d15914c5a45ccf9a26255af/raw/9001c0cffd6392bca30f41a9f346dd035c87f293/links.json',
     
+    // Интервалы обновления (в миллисекундах)
+    PROFILE_REFRESH_INTERVAL: 30 * 1000, // 30 секунд
+    LINKS_REFRESH_INTERVAL: 60 * 1000,   // 60 секунд
+    
     // Сопоставление текста статуса и CSS классов для цвета
     STATUS_CLASSES: {
         // Русские названия
@@ -26,7 +30,9 @@ const CONFIG = {
 // Глобальное состояние
 const state = {
     profileData: null,
-    linksData: null
+    linksData: null,
+    previousProfileData: null, // Для сравнения
+    previousLinksData: null    // Для сравнения
 };
 
 // DOM элементы
@@ -38,6 +44,27 @@ const DOM = {
     statusIndicator: document.getElementById('status-indicator'),
     linksContainer: document.getElementById('links-container')
 };
+
+// Идентификаторы таймеров для возможности их остановки
+let profileRefreshInterval = null;
+let linksRefreshInterval = null;
+
+// Вспомогательная функция для глубокого сравнения объектов (простая версия)
+function deepEqual(obj1, obj2) {
+    if (obj1 === obj2) return true;
+    if (obj1 == null || obj2 == null) return obj1 === obj2;
+    if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return obj1 === obj2;
+
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+    if (keys1.length !== keys2.length) return false;
+
+    for (let key of keys1) {
+        if (!keys2.includes(key)) return false;
+        if (!deepEqual(obj1[key], obj2[key])) return false;
+    }
+    return true;
+}
 
 // Настройка обработчиков событий
 function setupEventListeners() {
@@ -61,7 +88,7 @@ function setupEventListeners() {
             const lang = option.dataset.lang;
             if (LanguageModule.changeLanguage(lang)) {
                 LanguageModule.loadTranslations();
-                updateUI();
+                updateUI(); // Обновляем UI с новым языком
             }
             if (languageDropdown) {
                 languageDropdown.classList.remove('show');
@@ -109,15 +136,6 @@ function setupEventListeners() {
     });
 }
 
-// Загрузка данных
-async function fetchData() {
-    await Promise.all([
-        fetchProfileData(),
-        fetchLinksData()
-    ]);
-    updateUI();
-}
-
 // Загрузка данных профиля
 async function fetchProfileData() {
     try {
@@ -125,10 +143,34 @@ async function fetchProfileData() {
         const data = await response.json();
         
         if (data.success && data.data.length > 0) {
-            state.profileData = data.data[0];
+            const newProfileData = data.data[0];
+            
+            // Проверяем, изменились ли данные
+            if (!deepEqual(newProfileData, state.previousProfileData)) {
+                console.log("Данные профиля обновлены");
+                state.previousProfileData = JSON.parse(JSON.stringify(newProfileData)); // Глубокая копия
+                state.profileData = newProfileData;
+                updateProfileUI(); // Обновляем UI только если данные изменились
+            } else {
+                console.log("Данные профиля не изменились");
+            }
+        } else {
+             // Обработка случая, когда данные отсутствуют
+            if (state.previousProfileData !== null) { // Были данные, теперь их нет
+                 console.log("Данные профиля больше не доступны");
+                 state.previousProfileData = null;
+                 state.profileData = null;
+                 updateProfileUI(); // Обновляем UI, чтобы показать ошибку
+            }
         }
     } catch (error) {
         console.error('Ошибка при получении данных профиля:', error);
+         // Обновляем UI в случае ошибки, если раньше данные были
+        if (state.previousProfileData !== undefined) {
+            state.previousProfileData = undefined; // Или какой-то флаг ошибки
+            state.profileData = null;
+            updateProfileUI();
+        }
     }
 }
 
@@ -137,19 +179,32 @@ async function fetchLinksData() {
     try {
         const response = await fetch(CONFIG.LINKS_API_URL.trim());
         const data = await response.json();
-        state.linksData = data;
+        
+        // Проверяем, изменились ли данные (для массивов можно сравнивать JSON.stringify или длину/содержимое)
+        // Простое сравнение длины и первого элемента для примера. Для более точного сравнения массивов
+        // можно использовать более сложную логику.
+        const isNewDataDifferent = !deepEqual(data, state.previousLinksData);
+        
+        if (isNewDataDifferent) {
+            console.log("Данные ссылок обновлены");
+            state.previousLinksData = JSON.parse(JSON.stringify(data)); // Глубокая копия
+            state.linksData = data;
+            updateLinksUI(); // Обновляем UI только если данные изменились
+        } else {
+             console.log("Данные ссылок не изменились");
+        }
     } catch (error) {
         console.error('Ошибка при загрузке данных ссылок:', error);
+         // Обновляем UI в случае ошибки, если раньше данные были
+        if (state.previousLinksData !== undefined) {
+            state.previousLinksData = undefined;
+            state.linksData = null;
+            updateLinksUI();
+        }
     }
 }
 
-// Обновление интерфейса
-function updateUI() {
-    updateProfileUI();
-    updateLinksUI();
-}
-
-// Обновление профиля в интерфейсе с цветным индикатором статуса
+// Обновление интерфейса профиля (только если есть изменения)
 function updateProfileUI() {
     const currentLang = LanguageModule.getCurrentLanguage();
     const t = LanguageModule.LANGUAGES[currentLang];
@@ -200,105 +255,184 @@ function updateProfileUI() {
         // Обновление аватара
         if (DOM.avatar) {
             if (avatar) {
-                DOM.avatar.innerHTML = '';
-                const img = document.createElement('img');
-                img.src = avatar;
-                img.alt = `Avatar of ${username}`;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.borderRadius = '50%';
-                img.style.objectFit = 'cover';
-                DOM.avatar.appendChild(img);
+                // Проверяем, нужно ли обновлять аватар
+                if (DOM.avatar.src !== avatar) {
+                    DOM.avatar.src = avatar;
+                    DOM.avatar.alt = `Avatar of ${username}`;
+                }
             } else {
-                DOM.avatar.innerHTML = '<i class="fas fa-user"></i>';
+                if (DOM.avatar.src || DOM.avatar.innerHTML !== '<i class="fas fa-user"></i>') {
+                    DOM.avatar.src = '';
+                    DOM.avatar.innerHTML = '<i class="fas fa-user"></i>';
+                    DOM.avatar.alt = 'Аватар отсутствует';
+                }
             }
         }
         
         // Скрытие секции статуса если нужно
-        if (status === "none") {
-            const statusSection = document.querySelector('.status-section');
-            if (statusSection) {
-                statusSection.hidden = true;
+        const statusSection = document.querySelector('.status-section');
+        if (statusSection) {
+            const shouldBeHidden = (status === "none");
+            if (statusSection.hidden !== shouldBeHidden) {
+                statusSection.hidden = shouldBeHidden;
             }
         }
     } else {
+        // Отображение ошибки или состояния "загрузка" если данных нет
         if (DOM.username) DOM.username.textContent = t.errorLoadingStatus;
         if (DOM.status) DOM.status.textContent = t.errorLoadingStatus;
         if (DOM.onlinestatus) DOM.onlinestatus.textContent = t.checkingStatus;
         // Устанавливаем индикатор в серый цвет при ошибке
         if (DOM.statusIndicator) {
-            DOM.statusIndicator.className = 'online-indicator status-offline';
+            const currentClasses = DOM.statusIndicator.className;
+            if (!currentClasses.includes('status-offline') || currentClasses.includes('online-indicator')) {
+                 DOM.statusIndicator.className = 'online-indicator status-offline';
+            }
+        }
+        // Показываем секцию статуса в случае ошибки, чтобы показать сообщение
+        const statusSection = document.querySelector('.status-section');
+        if (statusSection && statusSection.hidden) {
+            statusSection.hidden = false;
         }
     }
 }
 
-// Обновление ссылок в интерфейсе
+// Обновление интерфейса ссылок (только если есть изменения)
 function updateLinksUI() {
     const currentLang = LanguageModule.getCurrentLanguage();
     const t = LanguageModule.LANGUAGES[currentLang];
     
     if (DOM.linksContainer) {
-        DOM.linksContainer.innerHTML = '';
+        // Проверка, есть ли данные для отображения
+        const hasValidData = state.linksData && Array.isArray(state.linksData) && state.linksData.length > 0;
+        const currentlyHasContent = DOM.linksContainer.children.length > 0 && 
+                                    !(DOM.linksContainer.children.length === 1 && 
+                                      DOM.linksContainer.children[0].textContent.includes(t.errorLoadingLinks || t.linksNotFound));
 
-        if (state.linksData && Array.isArray(state.linksData)) {
-            state.linksData.forEach(linkItem => {
-                // Выбираем название на текущем языке или fallback на английский
-                const title = linkItem.name[currentLang] || linkItem.name['en'] || 'Link';
+        // Если данные есть и они изменились, или если раньше были данные, а теперь их нет
+        if (hasValidData || currentlyHasContent) {
+             // Очищаем контейнер
+            DOM.linksContainer.innerHTML = '';
 
-                const linkElement = document.createElement('a');
-                linkElement.href = linkItem.url;
-                linkElement.target = '_blank';
-                linkElement.className = 'link-card';
+            if (hasValidData) {
+                state.linksData.forEach(linkItem => {
+                    // Выбираем название на текущем языке или fallback на английский
+                    const title = linkItem.name[currentLang] || linkItem.name['en'] || 'Link';
 
-                const iconElement = document.createElement('div');
-                iconElement.className = 'link-icon';
+                    const linkElement = document.createElement('a');
+                    linkElement.href = linkItem.url;
+                    linkElement.target = '_blank';
+                    linkElement.className = 'link-card';
 
-                if (linkItem.icon) {
-                    const img = document.createElement('img');
-                    img.src = linkItem.icon;
-                    img.alt = `Logo of ${title}`;
-                    img.style.width = '24px';
-                    img.style.height = '24px';
-                    iconElement.appendChild(img);
-                } else {
-                    // Дефолтная иконка, если иконка не предоставлена
-                    iconElement.innerHTML = '<i class="fas fa-external-link-alt"></i>';
-                }
+                    const iconElement = document.createElement('div');
+                    iconElement.className = 'link-icon';
 
-                const textElement = document.createElement('div');
-                textElement.className = 'link-text';
-                textElement.textContent = title;
+                    if (linkItem.icon) {
+                        const img = document.createElement('img');
+                        img.src = linkItem.icon;
+                        img.alt = `Logo of ${title}`;
+                        img.style.width = '24px';
+                        img.style.height = '24px';
+                        iconElement.appendChild(img);
+                    } else {
+                        // Дефолтная иконка, если иконка не предоставлена
+                        iconElement.innerHTML = '<i class="fas fa-external-link-alt"></i>';
+                    }
 
-                linkElement.appendChild(iconElement);
-                linkElement.appendChild(textElement);
-                DOM.linksContainer.appendChild(linkElement);
-            });
-        } else {
-            // Обработка ошибки или отсутствия данных
-            const errorDiv = document.createElement('div');
-            errorDiv.style.gridColumn = '1 / -1';
-            errorDiv.style.textAlign = 'center';
-            errorDiv.style.padding = '20px';
-            errorDiv.textContent = t.errorLoadingLinks || 'Ошибка загрузки ссылок.';
-            DOM.linksContainer.appendChild(errorDiv);
+                    const textElement = document.createElement('div');
+                    textElement.className = 'link-text';
+                    textElement.textContent = title;
+
+                    linkElement.appendChild(iconElement);
+                    linkElement.appendChild(textElement);
+                    DOM.linksContainer.appendChild(linkElement);
+                });
+            } else {
+                // Обработка ошибки или отсутствия данных
+                const errorDiv = document.createElement('div');
+                errorDiv.style.gridColumn = '1 / -1';
+                errorDiv.style.textAlign = 'center';
+                errorDiv.style.padding = '20px';
+                // Выбираем более подходящее сообщение
+                const errorMessage = state.linksData === null ? t.errorLoadingLinks : t.linksNotFound;
+                errorDiv.textContent = errorMessage || 'Ошибка загрузки ссылок.';
+                DOM.linksContainer.appendChild(errorDiv);
+            }
         }
+        // Если данных не было и нет, и контейнер уже пуст или содержит сообщение об ошибке, не обновляем
+    }
+}
+
+
+// Функция для запуска автоматического обновления
+function startAutoRefresh() {
+    // Останавливаем существующие таймеры, если они есть
+    stopAutoRefresh();
+
+    // Запускаем таймер для обновления профиля
+    profileRefreshInterval = setInterval(() => {
+        console.log("Автоматическое обновление профиля...");
+        fetchProfileData();
+    }, CONFIG.PROFILE_REFRESH_INTERVAL);
+
+    // Запускаем таймер для обновления ссылок
+    linksRefreshInterval = setInterval(() => {
+        console.log("Автоматическое обновление ссылок...");
+        fetchLinksData();
+    }, CONFIG.LINKS_REFRESH_INTERVAL);
+
+    console.log(`Автоматическое обновление запущено: профиль каждые ${CONFIG.PROFILE_REFRESH_INTERVAL/1000}с, ссылки каждые ${CONFIG.LINKS_REFRESH_INTERVAL/1000}с`);
+}
+
+// Функция для остановки автоматического обновления
+function stopAutoRefresh() {
+    if (profileRefreshInterval) {
+        clearInterval(profileRefreshInterval);
+        profileRefreshInterval = null;
+        console.log("Автоматическое обновление профиля остановлено");
+    }
+    if (linksRefreshInterval) {
+        clearInterval(linksRefreshInterval);
+        linksRefreshInterval = null;
+        console.log("Автоматическое обновление ссылок остановлено");
     }
 }
 
 // Инициализация приложения
-function initApp() {
+async function initApp() {
     setupEventListeners();
-    fetchData();
+    
+    // Первоначальная загрузка данных
+    await Promise.all([
+        fetchProfileData(),
+        fetchLinksData()
+    ]);
+    
+    // Запуск автоматического обновления
+    startAutoRefresh();
+    
+    console.log("Приложение инициализировано");
 }
 
 // Запуск приложения после загрузки всех модулей
 document.addEventListener('DOMContentLoaded', function() {
     // Убеждаемся, что модули инициализированы
     if (typeof LanguageModule !== 'undefined' && typeof ThemeModule !== 'undefined') {
-        LanguageModule.init();
-        ThemeModule.init();
+        // Инициализация модулей (уже происходит в их файлах, но можно вызвать снова для гарантии)
+        // LanguageModule.init();
+        // ThemeModule.init();
+        
         initApp();
     } else {
         console.error('Не удалось загрузить модули LanguageModule или ThemeModule');
+        // Можно показать сообщение об ошибке пользователю
+        if (DOM.status) {
+            DOM.status.textContent = 'Ошибка инициализации приложения.';
+        }
     }
+});
+
+// Опционально: остановка обновления при уходе со страницы (для экономии ресурсов)
+window.addEventListener('beforeunload', function() {
+    stopAutoRefresh();
 });
