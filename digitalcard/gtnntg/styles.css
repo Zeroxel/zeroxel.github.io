@@ -1,128 +1,412 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(to right, #6a11cb, #2575fc);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    margin: 0;
-}
-
-.card {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 15px;
     padding: 20px;
-    width: 400px; /* Увеличим ширину для размещения элементов */
-    text-align: left; /* Выравнивание текста по левому краю */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: background 0.3s ease;
 }
 
-.profile {
-    display: flex; /* Используем Flexbox для размещения аватара и имени */
-    align-items: center;
-    margin-bottom: 20px;
+/* Темы */
+body.theme-dark {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
 }
 
-#avatar {
-    width: 80px; /* Сделаем аватар немного меньше */
-    height: 80px;
-    border-radius: 35%;
-    border: 3px solid rgba(126, 251, 255, 0.603);
-    margin-right: 25px; /* Добавим отступ между аватаром и текстом */
+body.theme-light {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    color: #333;
 }
 
-#username {
-    font-size: 35px;
-    font-weight: bold;
-}
-#onlinestatus {
-    position: absolute;
-    margin-top: 65px;
-    margin-left: 110px;
-}
-#api-status {
-    margin-bottom: 20px;
+body.theme-light .card {
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-h2 {
-    font-size: 20px;
-    /*margin: 10px 0;*/
+body.theme-light .section-title {
+    color: #333;
 }
 
-.links {
-    margin-top: 20px;
+body.theme-light .links h2 {
+    color: #333;
 }
 
-.links h2 {
-    font-size: 20px;
-    margin-bottom: 10px;
-    color: white;
+body.theme-light .links a {
+    color: #333;
 }
 
-.links ul {
-    list-style-type: none;
-    padding: 0;
+body.theme-light .links a:hover {
+    color: #667eea;
 }
 
-.links li {
-    margin: 10px 0;
-    display: flex;
-    align-items: center;
+body.theme-light .status-section {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.links a {
-    color: white;
-    text-decoration: none;
-    font-size: 18px;
-    transition: color 0.3s ease;
-    display: flex;
-    align-items: center;
+body.theme-light .link-card {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.links a:hover {
-    color: #ffde59;
+body.theme-light .link-card:hover {
+    background: rgba(255, 255, 255, 1);
 }
 
-.links img {
-    width: 24px;
-    /*height: 24px;*/
-    margin-right: 10px;
-    transition: transform 0.3s ease;
+body.theme-light .theme-selector,
+body.theme-light .language-selector {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.links a:hover img {
-    transform: scale(1.1);
+body.theme-light .theme-selector:hover,
+body.theme-light .language-selector:hover {
+    background: rgba(255, 255, 255, 1);
 }
 
-.back-arrow {
+.top-controls {
     position: absolute;
     top: 20px;
     left: 20px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    background-color: transparent;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    color: white;
-    text-decoration: none;
-    transition: background-color 0.3s, transform 0.3s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
 }
 
-.back-arrow a {
+.back-arrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 12px 20px;
+    border-radius: 50px;
     color: white;
     text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .back-arrow:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateX(-5px);
+}
+
+.selector {
+    position: relative;
+}
+
+.selector-button {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 50px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.selector-button:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.selector-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 10px 0;
+    margin-top: 8px;
+    min-width: 150px;
+    z-index: 100;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+.selector-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.selector-option {
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.selector-option:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    z-index: -1;
+}
+
+.profile-section {
+    margin-bottom: 35px;
+}
+
+.avatar-container {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    margin: 0 auto 25px;
+}
+
+#avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+    background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 45px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.online-indicator {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 3px solid white;
+    background: #747f8d; /* Серый по умолчанию */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Цвета статусов Discord */
+.status-online {
+    background-color: #3ba55d !important; /* Зеленый - Онлайн */
+}
+
+.status-idle {
+    background-color: #faa81a !important; /* Желтый - Не активен/Отошел */
+}
+
+.status-dnd {
+    background-color: #ed4245 !important; /* Красный - Не беспокоить */
+}
+
+.status-offline, .status-invisible {
+    background-color: #747f8d !important; /* Серый - Оффлайн/Невидимый */
+}
+
+#username {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+#onlinestatus {
+    display: inline-block;
+    padding: 8px 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 500;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-section {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    padding: 30px;
+    margin-bottom: 35px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.section-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+#status {
+    font-size: 19px;
+    line-height: 1.6;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 400;
+}
+
+.loading {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 12px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.links-section {
+    margin-top: 25px;
+}
+
+.links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 18px;
+    margin-top: 25px;
+}
+
+.link-card {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 22px 18px;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.link-card:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.link-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    transition: transform 0.3s ease;
+}
+
+.link-card:hover .link-icon {
     transform: scale(1.1);
 }
 
-.back-arrow span {
-    font-size: 1.5rem;
-    vertical-align: middle;
+.link-text {
+    font-size: 16px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.4;
 }
 
+.nickname-badge {
+    margin-top: 35px;
+    display: inline-block;
+}
 
+.nickname-badge img {
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    max-width: 100%;
+    height: auto;
+}
 
+@media (max-width: 600px) {
+    .card {
+        padding: 30px 20px;
+        margin: 20px;
+    }
+    
+    .top-controls {
+        top: 15px;
+        left: 15px;
+    }
+    
+    .back-arrow {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    
+    #username {
+        font-size: 30px;
+    }
+    
+    .links-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .links-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .link-card {
+        padding: 18px 12px;
+    }
+    
+    .section-title {
+        font-size: 20px;
+    }
+}
