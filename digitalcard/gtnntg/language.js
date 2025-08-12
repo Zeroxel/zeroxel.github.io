@@ -15,7 +15,13 @@ const LanguageModule = (function() {
             userNotFound: 'Пользователь не найден.',
             errorLoadingStatus: 'Ошибка загрузки статуса.',
             errorLoadingLinks: 'Ошибка загрузки ссылок.',
-            linksNotFound: 'Ссылки не найдены.'
+            linksNotFound: 'Ссылки не найдены.',
+            // Переводы конкретных статусов
+            "в Сети": "в Сети",
+            "Не активен": "Не активен",
+            "Не беспокоить": "Не беспокоить",
+            "Оффлайн": "Оффлайн",
+            "Невидимый": "Невидимый"
         },
         en: {
             name: 'English',
@@ -30,7 +36,13 @@ const LanguageModule = (function() {
             userNotFound: 'User not found.',
             errorLoadingStatus: 'Error loading status.',
             errorLoadingLinks: 'Error loading links.',
-            linksNotFound: 'Links not found.'
+            linksNotFound: 'Links not found.',
+            // Переводы конкретных статусов
+            "в Сети": "Online",
+            "Не активен": "Idle",
+            "Не беспокоить": "Do Not Disturb",
+            "Оффлайн": "Offline",
+            "Невидимый": "Invisible"
         }
     };
 
