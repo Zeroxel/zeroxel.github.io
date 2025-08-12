@@ -216,9 +216,33 @@ function updateProfileUI() {
 
         if (DOM.username) DOM.username.textContent = username || t.userNotFound;
         if (DOM.status) DOM.status.innerHTML = status || t.statusNotFound;
-        if (DOM.onlinestatus) DOM.onlinestatus.textContent = onlinestatus || t.checkingStatus;
+        // Скрытие секции статуса если нужно
+        const statusSection = document.querySelector('.status-section');
+        if (statusSection) {
+            const shouldBeHidden = (status === "none");
+            if (statusSection.hidden !== shouldBeHidden) {
+                statusSection.hidden = shouldBeHidden;
+            }
+        }
 
-        // Обновление индикатора статуса с цветом
+        // --- ОБНОВЛЕНИЕ: Переводим текст статуса ---
+        let displayedOnlineStatus = onlinestatus || t.checkingStatus;
+        if (onlinestatus) {
+            // Пытаемся получить перевод статуса
+            const translatedStatus = LanguageModule.getTranslation(onlinestatus.trim());
+            // Если getTranslation вернул что-то отличное от исходного ключа,
+            // значит, перевод найден. Иначе оставляем оригинальный текст.
+            if (translatedStatus !== onlinestatus.trim()) {
+                 displayedOnlineStatus = translatedStatus;
+                 console.log(`Статус переведен: '${onlinestatus.trim()}' -> '${translatedStatus}'`);
+            } else {
+                console.log(`Перевод для статуса '${onlinestatus.trim()}' не найден, оставляем оригинал.`);
+            }
+        }
+        if (DOM.onlinestatus) DOM.onlinestatus.textContent = displayedOnlineStatus;
+        // --- КОНЕЦ ОБНОВЛЕНИЯ ---
+
+        // Обновление индикатора статуса с цветом (используем оригинальный текст!)
         if (DOM.statusIndicator) {
             const statusIndicator = DOM.statusIndicator;
             // Сначала удаляем все возможные классы статусов
@@ -227,15 +251,16 @@ function updateProfileUI() {
                 'status-offline', 'status-invisible'
             );
 
-            // Определяем класс для текущего статуса
+            // Определяем класс для текущего статуса (используем оригинальный onlinestatus!)
             let statusClass = 'status-offline'; // По умолчанию серый
             if (onlinestatus) {
-                const trimmedStatus = onlinestatus.trim();
-                // Проверяем точное совпадение
+                const trimmedStatus = onlinestatus.trim(); // Оригинальный текст
+                // Проверяем точное совпадение в CONFIG.STATUS_CLASSES
                 if (CONFIG.STATUS_CLASSES[trimmedStatus]) {
                     statusClass = CONFIG.STATUS_CLASSES[trimmedStatus];
                 } else {
                     // Проверяем частичные совпадения (на случай опечаток или вариаций)
+                    // по-прежнему используем оригинальный текст
                     const lowerStatus = trimmedStatus.toLowerCase();
                     if (lowerStatus.includes("в сети") || lowerStatus.includes("online")) {
                         statusClass = 'status-online';
@@ -252,6 +277,7 @@ function updateProfileUI() {
             }
             // Применяем соответствующий класс
             statusIndicator.classList.add(statusClass);
+             console.log(`Индикатор статуса обновлен: класс '${statusClass}' для оригинального статуса '${onlinestatus}'`);
         }
 
         // --- ИСПРАВЛЕНИЕ АВАТАРА: Простая и надежная логика ---
@@ -268,43 +294,46 @@ function updateProfileUI() {
                 img.style.height = '100%';
                 img.style.borderRadius = '50%';
                 img.style.objectFit = 'cover';
+                // Добавляем рамку из оригинального CSS
+                img.style.border = '4px solid rgba(126, 251, 255, 0.603)';
                 DOM.avatar.appendChild(img);
+                 console.log(`Аватар обновлен: ${avatar}`);
             } else {
                 // Если аватара нет, показываем иконку (как в оригинале)
                 const icon = document.createElement('i');
                 icon.className = 'fas fa-user';
                 icon.style.fontSize = '45px'; // Размер как в CSS
                 icon.style.color = 'rgba(255, 255, 255, 0.7)'; // Цвет как в CSS
+                // Центрируем иконку
+                icon.style.display = 'flex';
+                icon.style.alignItems = 'center';
+                icon.style.justifyContent = 'center';
+                icon.style.width = '100%';
+                icon.style.height = '100%';
                 DOM.avatar.appendChild(icon);
+                 console.log(`Аватар отсутствует, показана иконка.`);
             }
         }
         // --- КОНЕЦ ИСПРАВЛЕНИЯ АВАТАРА ---
 
-        // Скрытие секции статуса если нужно
-        const statusSection = document.querySelector('.status-section');
-        if (statusSection) {
-            const shouldBeHidden = (status === "none");
-            if (statusSection.hidden !== shouldBeHidden) {
-                statusSection.hidden = shouldBeHidden;
-            }
-        }
     } else {
         // Отображение ошибки или состояния "загрузка" если данных нет
         if (DOM.username) DOM.username.textContent = t.errorLoadingStatus;
         if (DOM.status) DOM.status.textContent = t.errorLoadingStatus;
         if (DOM.onlinestatus) DOM.onlinestatus.textContent = t.checkingStatus;
-        // Устанавливаем индикатор в серый цвет при ошибке
-        if (DOM.statusIndicator) {
-            const currentClasses = DOM.statusIndicator.className;
-            if (!currentClasses.includes('status-offline') || currentClasses.includes('online-indicator')) {
-                DOM.statusIndicator.className = 'online-indicator status-offline';
-            }
-        }
+        
         // Показываем секцию статуса в случае ошибки, чтобы показать сообщение
         const statusSection = document.querySelector('.status-section');
         if (statusSection && statusSection.hidden) {
             statusSection.hidden = false;
         }
+
+        // Устанавливаем индикатор в серый цвет при ошибке
+        if (DOM.statusIndicator) {
+             DOM.statusIndicator.className = 'online-indicator status-offline';
+             console.log(`Индикатор статуса установлен в 'offline' из-за ошибки.`);
+        }
+
          // --- ИСПРАВЛЕНИЕ АВАТАРА: Показываем иконку ошибки/загрузки ---
         if (DOM.avatar) {
             DOM.avatar.innerHTML = '';
@@ -312,7 +341,14 @@ function updateProfileUI() {
             icon.className = 'fas fa-user';
             icon.style.fontSize = '45px';
             icon.style.color = 'rgba(255, 255, 255, 0.7)';
+            // Центрируем иконку
+            icon.style.display = 'flex';
+            icon.style.alignItems = 'center';
+            icon.style.justifyContent = 'center';
+            icon.style.width = '100%';
+            icon.style.height = '100%';
             DOM.avatar.appendChild(icon);
+             console.log(`Аватар: ошибка загрузки, показана иконка.`);
         }
         // --- КОНЕЦ ИСПРАВЛЕНИЯ АВАТАРА ---
     }
