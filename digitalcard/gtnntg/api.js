@@ -4,7 +4,7 @@ const CONFIG = {
     PROFILE_API_URL: 'https://sheets.livepolls.app/api/spreadsheets/fc0ed5f8-a649-47c5-a6fa-946f177d998d/main-gtnntg',
 
     // URL для данных ссылок (GitHub Gist)
-    LINKS_API_URL: 'https://gist.githubusercontent.com/Zeroxel/30d571fe4d15914c5a45ccf9a26255af/raw/9001c0cffd6392bca30f41a9f346dd035c87f293/links.json',
+    LINKS_API_URL: 'https://gist.githubusercontent.com/Zeroxel/30d571fe4d15914c5a45ccf9a26255af/raw/links.json',
 
     // Интервалы обновления (в миллисекундах)
     PROFILE_REFRESH_INTERVAL: 30 * 1000, // 30 секунд
