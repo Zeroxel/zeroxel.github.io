@@ -14,14 +14,22 @@ const ThemeModule = (function() {
         }
     };
 
-    // DOM элементы для тем
-    const DOM = {
-        themeSelector: document.getElementById('themeSelector'),
-        themeDropdown: document.getElementById('themeDropdown'),
-        currentTheme: document.getElementById('currentTheme')
+    // DOM элементы для тем (изначально null)
+    let DOM = {
+        themeSelector: null,
+        themeDropdown: null,
+        currentTheme: null
     };
 
     let currentTheme = 'dark';
+    let isInitialized = false;
+
+    // Безопасное получение элементов DOM
+    function getDOMElements() {
+        if (!DOM.themeSelector) DOM.themeSelector = document.getElementById('themeSelector');
+        if (!DOM.themeDropdown) DOM.themeDropdown = document.getElementById('themeDropdown');
+        if (!DOM.currentTheme) DOM.currentTheme = document.getElementById('currentTheme');
+    }
 
     // Загрузка предпочтений пользователя
     function loadUserPreferences() {
@@ -34,6 +42,9 @@ const ThemeModule = (function() {
 
     // Применение темы
     function applyTheme() {
+        // Убедимся, что у нас есть ссылки на элементы
+        getDOMElements();
+
         // Удаление всех классов тем
         Object.values(THEMES).forEach(theme => {
             document.body.classList.remove(theme.className);
@@ -58,11 +69,16 @@ const ThemeModule = (function() {
 
     // Смена темы
     function changeTheme(theme) {
+        console.log(`Попытка сменить тему на: ${theme}`); // Отладка
         if (THEMES[theme]) {
+            const oldTheme = currentTheme;
             currentTheme = theme;
             localStorage.setItem('preferredTheme', theme);
             applyTheme();
+            console.log(`Тема изменена с ${oldTheme} на ${theme}`); // Отладка
             return true;
+        } else {
+            console.warn(`Попытка сменить на несуществующую тему: ${theme}`); // Отладка
         }
         return false;
     }
@@ -74,23 +90,44 @@ const ThemeModule = (function() {
 
     // Инициализация модуля
     function init() {
-        loadUserPreferences();
+        if (isInitialized) {
+            console.log("ThemeModule уже инициализирован");
+            return;
+        }
+
+        console.log("Инициализация ThemeModule...");
+        loadUserPreferences(); // Загружаем предпочтения пользователя
+        // applyTheme вызовется позже, когда DOM будет готов
+
+        isInitialized = true;
+        console.log(`ThemeModule инициализирован. Текущая тема: ${currentTheme}`);
+    }
+
+    // Инициализируем модуль сразу
+    init();
+
+    // Если DOM уже загружен, применяем тему
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Событие DOMContentLoaded получено в ThemeModule");
+            getDOMElements(); // Получаем элементы после загрузки DOM
+            applyTheme(); // Применяем тему, когда элементы доступны
+        });
+    } else {
+        // DOM уже загружен
+        console.log("DOM уже загружен при инициализации ThemeModule");
+        getDOMElements();
         applyTheme();
     }
 
     // Возвращаем публичные методы
     return {
         THEMES,
-        DOM,
-        init,
+        init, // init безопасен для повторного вызова
         applyTheme,
         changeTheme,
         getCurrentTheme,
         loadUserPreferences
     };
 })();
-
-// Инициализируем модуль тем при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    ThemeModule.init();
-});
+// --- Конец IIFE ThemeModule ---
