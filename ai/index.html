@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Card</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Светлая тема */
+        body.light-theme {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        /* Тёмная тема */
+        body.dark-theme {
+            background-color: #1a1a2e;
+            color: #eee;
+        }
+
+        /* Синяя тема */
+        body.blue-theme {
+            background-color: #0f3460;
+            color: #e6f7ff;
+        }
+
+        /* Фиолетовая тема */
+        body.purple-theme {
+            background-color: #2d1b69;
+            color: #f0e6ff;
+        }
+
+        .card {
+            background: linear-gradient(145deg, #ffffff, #e6e9f0);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-theme .card {
+            background: linear-gradient(145deg, #16213e, #0f3460);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        body.blue-theme .card {
+            background: linear-gradient(145deg, #1e3c72, #2a5298);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        body.purple-theme .card {
+            background: linear-gradient(145deg, #472a8c, #6a3093);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .avatar-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #4e54c8;
+            transition: transform 0.3s ease;
+        }
+
+        body.blue-theme .avatar {
+            border-color: #4facfe;
+        }
+
+        body.purple-theme .avatar {
+            border-color: #a86af0;
+        }
+
+        .avatar:hover {
+            transform: scale(1.05);
+        }
+
+        .online-indicator {
+            position: absolute;
+            top: 100px;
+            right: 14px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px solid white;
+            transform: translate(25%, -25%);
+        }
+
+        .online-indicator.online {
+            background-color: #4caf50;
+            box-shadow: 0 0 10px #4caf50;
+        }
+
+        .online-indicator.offline {
+            background-color: #9e9e9e;
+        }
+
+        .name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #4e54c8, #8f94fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        body.dark-theme .name {
+            background: linear-gradient(45deg, #8f94fb, #4e54c8);
+        }
+
+        body.blue-theme .name {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+        }
+
+        body.purple-theme .name {
+            background: linear-gradient(45deg, #a86af0, #d46ef7);
+        }
+
+        .status {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: inline-block;
+            background-color: rgba(78, 84, 200, 0.1);
+            color: #4e54c8;
+            font-weight: 500;
+        }
+
+        body.dark-theme .status {
+            background-color: rgba(143, 148, 251, 0.2);
+            color: #8f94fb;
+        }
+
+        body.blue-theme .status {
+            background-color: rgba(79, 172, 254, 0.2);
+            color: #4facfe;
+        }
+
+        body.purple-theme .status {
+            background-color: rgba(168, 106, 240, 0.2);
+            color: #a86af0;
+        }
+
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .link-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 15px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            background-color: rgba(78, 84, 200, 0.05);
+            color: inherit;
+        }
+
+        .link-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 84, 200, 0.2);
+            background-color: rgba(78, 84, 200, 0.1);
+        }
+
+        body.dark-theme .link-item {
+            background-color: rgba(143, 148, 251, 0.1);
+        }
+
+        body.blue-theme .link-item {
+            background-color: rgba(79, 172, 254, 0.1);
+        }
+
+        body.purple-theme .link-item {
+            background-color: rgba(168, 106, 240, 0.1);
+        }
+
+        body.dark-theme .link-item:hover {
+            background-color: rgba(143, 148, 251, 0.2);
+            box-shadow: 0 5px 15px rgba(143, 148, 251, 0.3);
+        }
+
+        body.blue-theme .link-item:hover {
+            background-color: rgba(79, 172, 254, 0.2);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        body.purple-theme .link-item:hover {
+            background-color: rgba(168, 106, 240, 0.2);
+            box-shadow: 0 5px 15px rgba(168, 106, 240, 0.3);
+        }
+
+        .link-icon {
+            width: 32px;
+            height: 32px;
+            margin-right: 1rem;
+            border-radius: 8px;
+        }
+
+        .link-name {
+            font-weight: 500;
+            flex: 1;
+            text-align: left;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .theme-selector, .language-selector {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(45deg, #4e54c8, #8f94fb);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-theme .theme-selector, body.dark-theme .language-selector {
+            background: linear-gradient(45deg, #8f94fb, #4e54c8);
+        }
+
+        body.blue-theme .theme-selector, body.blue-theme .language-selector {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+        }
+
+        body.purple-theme .theme-selector, body.purple-theme .language-selector {
+            background: linear-gradient(45deg, #a86af0, #d46ef7);
+        }
+
+        .theme-selector:hover, .language-selector:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 84, 200, 0.3);
+        }
+
+        body.blue-theme .theme-selector:hover, body.blue-theme .language-selector:hover {
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        body.purple-theme .theme-selector:hover, body.purple-theme .language-selector:hover {
+            box-shadow: 0 5px 15px rgba(168, 106, 240, 0.3);
+        }
+
+        .last-update {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .name {
+                font-size: 1.5rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="card">
+        <div class="avatar-container">
+            <img src="https://placehold.co/120x120/4e54c8/ffffff?text=DC" alt="Avatar" class="avatar" id="avatar">
+            <div class="online-indicator online" id="onlineIndicator"></div>
+        </div>
+        
+        <h1 class="name" id="name">Digital Card</h1>
+        
+        <div class="status" id="status">Работаю</div>
+        
+        <div class="links" id="links">
+            <!-- Ссылки будут добавлены сюда -->
+        </div>
+        
+        <div class="controls">
+            <select class="theme-selector" id="themeSelector" onchange="changeTheme()">
+                <option value="dark">Тёмная</option>
+                <option value="light">Светлая</option>
+                <option value="blue">Синяя</option>
+                <option value="purple">Фиолетовая</option>
+            </select>
+            
+            <select class="language-selector" id="languageSelector" onchange="changeLanguage()">
+                <option value="ru">Русский</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+            </select>
+        </div>
+        
+        <div class="last-update" id="lastUpdate">
+            Последнее обновление: сегодня
+        </div>
+    </div>
+
+    <script>
+        // Данные для разных языков и тем
+        const data = {
+            profile: {
+                name: "Digital Card",
+                avatar: "https://placehold.co/120x120/4e54c8/ffffff?text=DC",
+                online: true,
+                status: {
+                    en: "Working",
+                    ru: "Работаю",
+                    es: "Trabajando",
+                    fr: "En train de travailler",
+                    de: "Arbeite"
+                }
+            },
+            links: [
+                {
+                    icon: {
+                        light: "https://placehold.co/32x32/26A5E4/ffffff?text=TG",
+                        dark: "https://placehold.co/32x32/26A5E4/ffffff?text=TG"
+                    },
+                    name: {
+                        en: "My Telegram",
+                        ru: "Мой Телеграм",
+                        es: "Mi Telegram",
+                        fr: "Mon Telegram",
+                        de: "Mein Telegram"
+                    },
+                    url: "https://t.me/gtnntg"
+                },
+                {
+                    icon: {
+                        light: "https://placehold.co/32x32/333333/ffffff?text=GH",
+                        dark: "https://placehold.co/32x32/ffffff/333333?text=GH"
+                    },
+                    name: {
+                        en: "My GitHub",
+                        ru: "Мой Гитхаб",
+                        es: "Mi GitHub",
+                        fr: "Mon GitHub",
+                        de: "Mein GitHub"
+                    },
+                    url: "https://github.com/username"
+                },
+                {
+                    icon: "https://placehold.co/32x32/EA4335/ffffff?text=GM",
+                    name: {
+                        en: "My Email",
+                        ru: "Моя Почта",
+                        es: "Mi Email",
+                        fr: "Mon Email",
+                        de: "Meine E-Mail"
+                    },
+                    url: "mailto:example@gmail.com"
+                },
+                {
+                    icon: {
+                        light: "https://placehold.co/32x32/1DA1F2/ffffff?text=TW",
+                        dark: "https://placehold.co/32x32/1DA1F2/ffffff?text=TW"
+                    },
+                    name: {
+                        en: "My Twitter",
+                        ru: "Мой Твиттер",
+                        es: "Mi Twitter",
+                        fr: "Mon Twitter",
+                        de: "Mein Twitter"
+                    },
+                    url: "https://twitter.com/username"
+                }
+            ],
+            theme: "dark",
+            language: "ru",
+            themes: ["dark", "light", "blue", "purple"],
+            languages: ["ru", "en", "es", "fr", "de"]
+        };
+
+        // Текущее состояние
+        let currentTheme = data.theme;
+        let currentLanguage = data.language;
+
+        // Функция обновления контента
+        function updateContent() {
+            // Обновляем аватар
+            document.getElementById('avatar').src = data.profile.avatar;
+            
+            // Обновляем имя
+            document.getElementById('name').textContent = data.profile.name;
+            
+            // Обновляем статус
+            document.getElementById('status').textContent = data.profile.status[currentLanguage];
+            
+            // Обновляем индикатор онлайн
+            const indicator = document.getElementById('onlineIndicator');
+            indicator.className = 'online-indicator ' + (data.profile.online ? 'online' : 'offline');
+            
+            // Обновляем ссылки
+            const linksContainer = document.getElementById('links');
+            linksContainer.innerHTML = '';
+            
+            data.links.forEach(link => {
+                const linkElement = document.createElement('a');
+                linkElement.href = link.url;
+                linkElement.className = 'link-item';
+                linkElement.target = '_blank';
+                
+                // Определяем иконку в зависимости от темы
+                let iconSrc;
+                if (typeof link.icon === 'object') {
+                    iconSrc = link.icon[currentTheme] || link.icon.light;
+                } else {
+                    iconSrc = link.icon;
+                }
+                
+                linkElement.innerHTML = `
+                    <img src="${iconSrc}" alt="" class="link-icon">
+                    <span class="link-name">${link.name[currentLanguage]}</span>
+                `;
+                
+                linksContainer.appendChild(linkElement);
+            });
+            
+            // Обновляем селекты
+            document.getElementById('themeSelector').value = currentTheme;
+            document.getElementById('languageSelector').value = currentLanguage;
+            
+            // Обновляем дату
+            const now = new Date();
+            const dateTranslations = {
+                ru: `Последнее обновление: ${now.toLocaleDateString('ru-RU')}`,
+                en: `Last update: ${now.toLocaleDateString('en-US')}`,
+                es: `Última actualización: ${now.toLocaleDateString('es-ES')}`,
+                fr: `Dernière mise à jour: ${now.toLocaleDateString('fr-FR')}`,
+                de: `Letzte Aktualisierung: ${now.toLocaleDateString('de-DE')}`
+            };
+            document.getElementById('lastUpdate').textContent = dateTranslations[currentLanguage] || dateTranslations.ru;
+        }
+
+        // Смена темы
+        function changeTheme() {
+            currentTheme = document.getElementById('themeSelector').value;
+            document.body.className = currentTheme + '-theme';
+            updateContent();
+        }
+
+        // Смена языка
+        function changeLanguage() {
+            currentLanguage = document.getElementById('languageSelector').value;
+            updateContent();
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.className = currentTheme + '-theme';
+            updateContent();
+        });
+    </script>
+</body>
+</html>
