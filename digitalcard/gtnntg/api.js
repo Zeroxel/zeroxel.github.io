@@ -1,7 +1,7 @@
 // Конфигурация
 const CONFIG = {
     // URL для данных профиля (Google Sheets API)
-    PROFILE_API_URL: 'https://sheets.livepolls.app/api/spreadsheets/fc0ed5f8-a649-47c5-a6fa-946f177d998d/main-gtnntg',
+    PROFILE_API_URL: 'https://sheets.livepolls.app/api/spreadsheets/b13b7226-885d-49fd-901b-315e7e47e57c/main-gtnntg',
 
     // URL для данных ссылок (GitHub Gist)
     LINKS_API_URL: 'https://gist.githubusercontent.com/Zeroxel/30d571fe4d15914c5a45ccf9a26255af/raw/links.json',
